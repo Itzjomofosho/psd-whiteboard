@@ -1548,6 +1548,10 @@ function showShareDialog(res, title) {
 
 // Picks a file from Drive. For a board, `onBoard` decides where it goes.
 async function pickFromDrive({ intoBoard }) {
+  if (!drive.canPick()) {
+    toast('Opening files from Google Drive needs an API key in js/config.js (see README). Saving to Drive works already.');
+    return;
+  }
   const auth = drive.signIn();
   let file;
   try {

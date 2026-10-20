@@ -3,6 +3,7 @@
 import { GOOGLE } from './config.js';
 
 export const driveEnabled = () => !!GOOGLE.clientId;
+export const canPick = () => !!GOOGLE.apiKey;
 
 const SCOPE = 'https://www.googleapis.com/auth/drive.file';
 const FOLDER_NAME = 'PSD Whiteboard';
@@ -147,6 +148,7 @@ export async function upload(blob, name, { fileId = null } = {}) {
 
 // Opens the Google Picker. Resolves to { id, name, mimeType } or null.
 export async function pick() {
+  if (!GOOGLE.apiKey) throw new Error('Browsing Google Drive needs the API key in js/config.js (see README).');
   const t = await getToken();
   if (!window.google?.picker) throw new Error('Google Picker is still loading. Try again in a moment.');
   const P = window.google.picker;
