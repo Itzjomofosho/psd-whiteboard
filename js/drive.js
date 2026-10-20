@@ -11,6 +11,7 @@ const GOOGLE_TYPES = {
   'application/vnd.google-apps.presentation': true,
   'application/vnd.google-apps.document': true,
   'application/vnd.google-apps.drawing': true,
+  'application/vnd.google-apps.spreadsheet': true,
 };
 // Office files are converted by copying them as Google files, then exporting.
 const CONVERT = {
@@ -18,6 +19,8 @@ const CONVERT = {
   'application/vnd.ms-powerpoint': 'application/vnd.google-apps.presentation',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'application/vnd.google-apps.document',
   'application/msword': 'application/vnd.google-apps.document',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'application/vnd.google-apps.spreadsheet',
+  'application/vnd.ms-excel': 'application/vnd.google-apps.spreadsheet',
 };
 export const PICKABLE = [
   'application/pdf', 'image/png', 'image/jpeg', 'image/gif', 'image/webp', 'application/json',

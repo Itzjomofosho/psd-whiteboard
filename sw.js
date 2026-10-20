@@ -1,7 +1,7 @@
 // Offline support. Serves the app from cache, refreshing the cache in the
 // background, so updates appear on the next launch. Bump CACHE when deploying
 // to drop old files.
-const CACHE = 'psd-whiteboard-v4';
+const CACHE = 'psd-whiteboard-v5';
 const ASSETS = [
   './',
   'index.html',
