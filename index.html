@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>PSD Whiteboard</title>
+<meta name="description" content="Record whiteboard lessons with voice, on any device.">
+<meta name="theme-color" content="#ffffff">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Whiteboard">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="styles.css">
+<script type="module" src="js/app.js"></script>
+</head>
+<body>
+
+<section id="home">
+  <header class="home-head">
+    <h1><img src="icons/icon.svg" alt="" width="36" height="36">PSD Whiteboard</h1>
+    <div class="row wrap">
+      <button id="import" class="btn"><span data-icon="open"></span>Open file</button>
+      <button id="home-drive" class="btn drive-only"><span data-icon="drive"></span>Google Drive</button>
+      <button id="new" class="btn primary"><span data-icon="plus"></span>New board</button>
+    </div>
+  </header>
+  <p id="empty" class="empty" hidden>No boards yet. Tap <b>New board</b> to start, or <b>Open file</b> to start from a PDF.</p>
+  <div id="projects" class="grid"></div>
+  <section id="recordings-section" hidden>
+    <h2 class="section-title">Recordings on this device</h2>
+    <div id="recordings" class="reclist"></div>
+  </section>
+  <p class="note">Boards and recordings are saved on this device only. To back up a board or move it
+    to another device, use the download button on its card, then <b>Open file</b> on the other device.</p>
+  <input type="file" id="importFile" accept=".json,application/json,.pdf,application/pdf" hidden>
+</section>
+
+<section id="board" hidden>
+  <header class="bar top">
+    <button class="icon" id="home-btn" data-icon="home" title="All boards" aria-label="All boards"></button>
+    <button id="title" class="title" title="Rename board"></button>
+    <span class="spacer"></span>
+    <button class="icon" id="undo" data-icon="undo" title="Undo" aria-label="Undo"></button>
+    <button class="icon" id="redo" data-icon="redo" title="Redo" aria-label="Redo"></button>
+    <span class="sep"></span>
+    <button class="icon" id="prev" data-icon="prev" title="Previous page" aria-label="Previous page"></button>
+    <button id="pagelabel" class="pagelabel" title="Pages and backgrounds">1 / 1</button>
+    <button class="icon" id="next" data-icon="next" title="Next page" aria-label="Next page"></button>
+    <button class="icon" id="addpage" data-icon="plus" title="Add page" aria-label="Add page"></button>
+    <span class="sep"></span>
+    <button class="icon" id="camera" data-icon="camera" title="Show camera" aria-label="Show camera"></button>
+    <button class="icon" id="present" data-icon="present" title="Present (full screen)" aria-label="Present"></button>
+    <button class="btn rec-btn" data-rec="start"><span class="dot"></span>Record</button>
+    <span class="rectime" data-rec="time" hidden>0:00</span>
+    <button class="icon" data-rec="pause" data-icon="pause" title="Pause recording" aria-label="Pause recording" hidden></button>
+    <button class="icon stop" data-rec="stop" data-icon="stop" title="Stop recording" aria-label="Stop recording" hidden></button>
+    <button class="icon" id="export" data-icon="share" data-menu title="Export and share" aria-label="Export and share"></button>
+  </header>
+
+  <main id="stage">
+    <div id="paper" data-tool="pen">
+      <canvas id="canvas"></canvas>
+      <canvas id="overlay"></canvas>
+      <textarea id="texteditor" hidden spellcheck="true" autocapitalize="sentences" rows="1"></textarea>
+      <div id="selbar" class="selbar" hidden>
+        <button class="icon" id="sel-edit" data-icon="text" title="Edit text" aria-label="Edit text"></button>
+        <button class="icon" id="sel-play" data-icon="play" title="Play / pause" aria-label="Play or pause"></button>
+        <button class="icon" id="sel-copy" data-icon="copy" title="Duplicate" aria-label="Duplicate"></button>
+        <button class="icon" id="sel-front" data-icon="front" title="Bring to front" aria-label="Bring to front"></button>
+        <button class="icon" id="sel-lock" data-icon="lock" title="Lock in place" aria-label="Lock in place"></button>
+        <button class="icon danger" id="sel-delete" data-icon="trash" title="Delete" aria-label="Delete"></button>
+      </div>
+    </div>
+    <div id="zoomctl" class="zoomctl">
+      <button class="icon" id="zoom-out" data-icon="minus" title="Zoom out" aria-label="Zoom out"></button>
+      <button id="zoom-reset" class="zoomlabel" title="Fit page">100%</button>
+      <button class="icon" id="zoom-in" data-icon="plus" title="Zoom in" aria-label="Zoom in"></button>
+    </div>
+  </main>
+
+  <footer class="bar bottom">
+    <div class="tools">
+      <button class="icon tool" data-tool="select" data-icon="select" title="Select, move, lasso (V)" aria-label="Select"></button>
+      <button class="icon tool" data-tool="pen" data-icon="pen" title="Pen (P)" aria-label="Pen"></button>
+      <button class="icon tool" data-tool="highlighter" data-icon="highlighter" title="Highlighter (H)" aria-label="Highlighter"></button>
+      <button class="icon tool" data-tool="eraser" data-icon="eraser" title="Eraser (E)" aria-label="Eraser"></button>
+      <button class="icon tool" id="shapebtn" data-tool="shape" data-menu title="Shapes (S)" aria-label="Shapes"></button>
+      <button class="icon tool" data-tool="text" data-icon="text" title="Text (T)" aria-label="Text"></button>
+      <button class="icon tool" data-tool="laser" data-icon="laser" title="Laser pointer (L)" aria-label="Laser pointer"></button>
+      <button class="icon" id="insertbtn" data-icon="insert" data-menu title="Insert image, PDF, video, ruler…" aria-label="Insert"></button>
+      <span class="sep"></span>
+      <div id="palette" class="palette"></div>
+      <span class="sep"></span>
+      <div id="sizes" class="sizes">
+        <button class="size" data-size="0" title="Thin" aria-label="Thin"><span></span></button>
+        <button class="size" data-size="1" title="Medium" aria-label="Medium"><span></span></button>
+        <button class="size" data-size="2" title="Thick" aria-label="Thick"><span></span></button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Floating toolbar shown while presenting -->
+  <div id="mini" class="mini">
+    <button class="icon" id="mini-exit" data-icon="minimize" title="Exit presentation" aria-label="Exit presentation"></button>
+    <span class="mini-body">
+      <span class="sep"></span>
+      <button class="icon tool" data-tool="select" data-icon="select" title="Select" aria-label="Select"></button>
+      <button class="icon tool" data-tool="pen" data-icon="pen" title="Pen" aria-label="Pen"></button>
+      <button class="icon tool" data-tool="highlighter" data-icon="highlighter" title="Highlighter" aria-label="Highlighter"></button>
+      <button class="icon tool" data-tool="eraser" data-icon="eraser" title="Eraser" aria-label="Eraser"></button>
+      <button class="icon tool" data-tool="laser" data-icon="laser" title="Laser pointer" aria-label="Laser pointer"></button>
+      <span class="sep"></span>
+      <span id="mini-palette" class="palette"></span>
+      <span class="sep"></span>
+      <button class="icon" data-act="undo" data-icon="undo" title="Undo" aria-label="Undo"></button>
+      <button class="icon" data-act="prev" data-icon="prev" title="Previous page" aria-label="Previous page"></button>
+      <span class="pagelabel mini-page" id="mini-page">1/1</span>
+      <button class="icon" data-act="next" data-icon="next" title="Next page" aria-label="Next page"></button>
+      <span class="sep"></span>
+      <button class="btn rec-btn" data-rec="start"><span class="dot"></span>Rec</button>
+      <span class="rectime" data-rec="time" hidden>0:00</span>
+      <button class="icon" data-rec="pause" data-icon="pause" title="Pause recording" aria-label="Pause recording" hidden></button>
+      <button class="icon stop" data-rec="stop" data-icon="stop" title="Stop recording" aria-label="Stop recording" hidden></button>
+      <span class="sep"></span>
+      <button class="icon" id="mini-move" data-icon="totop" title="Move toolbar" aria-label="Move toolbar"></button>
+    </span>
+    <button class="icon" id="mini-collapse" data-icon="more" title="Hide or show tools" aria-label="Hide or show tools"></button>
+  </div>
+
+  <input type="file" id="imageFile" accept="image/*" hidden>
+  <input type="file" id="pdfFile" accept="application/pdf,.pdf" hidden>
+  <input type="file" id="videoFile" accept="video/*" hidden>
+</section>
+
+<div id="shapemenu" class="menu" hidden>
+  <div class="menurow">
+    <button class="icon" data-shape="rect" data-icon="rect" title="Rectangle" aria-label="Rectangle"></button>
+    <button class="icon" data-shape="ellipse" data-icon="ellipse" title="Ellipse" aria-label="Ellipse"></button>
+    <button class="icon" data-shape="triangle" data-icon="triangle" title="Triangle" aria-label="Triangle"></button>
+    <button class="icon" data-shape="line" data-icon="line" title="Line" aria-label="Line"></button>
+    <button class="icon" data-shape="arrow" data-icon="arrow" title="Arrow" aria-label="Arrow"></button>
+  </div>
+  <div class="menurow">
+    <button class="icon" data-fill="none" data-icon="fillnone" title="No fill" aria-label="No fill"></button>
+    <button class="icon" data-fill="tint" data-icon="filltint" title="Light fill" aria-label="Light fill"></button>
+    <button class="icon" data-fill="solid" data-icon="fillsolid" title="Solid fill" aria-label="Solid fill"></button>
+    <span class="sep"></span>
+    <button class="icon" id="dashbtn" data-icon="dash" title="Dashed outline" aria-label="Dashed outline"></button>
+  </div>
+</div>
+
+<div id="insertmenu" class="menu" hidden>
+  <button class="item" data-insert="image"><span data-icon="image"></span>Image or photo</button>
+  <button class="item" data-insert="pdf"><span data-icon="pdf"></span>PDF (adds pages)</button>
+  <button class="item" data-insert="video"><span data-icon="video"></span>Video clip</button>
+  <button class="item drive-only" data-insert="drive"><span data-icon="drive"></span>From Google Drive (PDF, Slides, Docs…)</button>
+  <hr>
+  <button class="item" data-insert="ruler"><span data-icon="ruler"></span>Ruler<span class="tick" data-icon="check"></span></button>
+  <button class="item" data-insert="protractor"><span data-icon="protractor"></span>Protractor<span class="tick" data-icon="check"></span></button>
+</div>
+
+<div id="exportmenu" class="menu" hidden>
+  <button class="item" data-export="png"><span data-icon="image"></span>This page as an image</button>
+  <button class="item" data-export="pdf"><span data-icon="pdf"></span>All pages as a PDF</button>
+  <button class="item" data-export="file"><span data-icon="download"></span>Project file (backup)</button>
+  <hr class="drive-only">
+  <button class="item drive-only" data-export="drive-board"><span data-icon="drive"></span>Save board to Google Drive</button>
+  <button class="item drive-only" data-export="drive-pdf"><span data-icon="classroom"></span>PDF to Drive &amp; Classroom</button>
+</div>
+
+<aside id="pages" class="drawer" hidden>
+  <header>
+    <h2>Pages</h2>
+    <button class="icon" id="pages-close" data-icon="close" title="Close" aria-label="Close"></button>
+  </header>
+  <div class="bgpick">
+    <span>Background for this page</span>
+    <div id="bgchoices" class="chips"></div>
+    <button id="unlock-all" class="btn small" hidden><span data-icon="unlock"></span><span class="label"></span></button>
+  </div>
+  <div id="pagelist" class="pagelist"></div>
+  <footer><button class="btn primary" id="pages-add"><span data-icon="plus"></span>Add page</button></footer>
+</aside>
+
+<dialog id="recdialog">
+  <h2 id="rectitle">Your recording</h2>
+  <video id="recvideo" controls playsinline preload="auto"></video>
+  <p id="recinfo" class="muted"></p>
+  <p id="recdrive" class="drive-result" hidden></p>
+  <div class="dlg-actions">
+    <button id="recdelete" class="btn danger-text"><span data-icon="trash"></span>Delete</button>
+    <span class="spacer"></span>
+    <button id="recdrivebtn" class="btn drive-only"><span data-icon="drive"></span>Save to Drive</button>
+    <button id="recsave" class="btn"><span data-icon="download"></span>Save video</button>
+    <button id="recdone" class="btn primary">Done</button>
+  </div>
+</dialog>
+
+<dialog id="busy" class="busy">
+  <div class="spinner"></div>
+  <p id="busymsg">Working…</p>
+</dialog>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+</body>
+</html>
