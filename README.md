@@ -27,11 +27,11 @@ and recordings are saved on the device, with optional Google Drive / Classroom i
 **Pages:** add, duplicate, reorder and delete pages. Backgrounds: plain, grid, lined,
 handwriting lines, dots, coordinate plane, music staff, dark, chalkboard.
 
-**Importing** (Insert menu, home-screen **Open file**, or drag and drop on a computer)
+**Importing** (Insert menu, home-screen **Open PDF or file**, or drag and drop on a computer)
 - Images and photos (camera, Photos, Files)
 - **PDFs:** each PDF page becomes a board page you can write on (up to 60 pages)
 - **Video clips** that play on the board. Their sound is included in recordings.
-- Google Slides, Docs, PowerPoint and Word: through Google Drive (below), or save them as PDF
+- Google Slides, Docs, Sheets, PowerPoint, Word and Excel: through **Open from Google Drive** (below), or save them as PDF
   first (Google: File ▸ Download ▸ PDF; PowerPoint/Word: Export ▸ PDF)
 
 **Presenting and recording**
@@ -112,8 +112,8 @@ policy (`WebAppInstallForceList`).
 ## Google Drive and Classroom (optional)
 
 Off by default. When it's turned on, these appear:
-- Home screen **Google Drive** button: open a board file, PDF, image, Google Slides/Docs or
-  PowerPoint/Word file from Drive (Slides, Docs and Office files are converted to PDF pages).
+- Home screen **Open from Google Drive**: open a board file, PDF, image, Google Slides/Docs or
+  PowerPoint/Word file from Drive (Slides, Docs, Sheets and Office files are converted to PDF pages). The picker has My Drive (with folders), Shared with me, Shared drives and Starred tabs. The iPad's own file picker (Open PDF or file) can't convert Google files, so use this button for them.
 - Insert ▸ **From Google Drive**: add a PDF, Slides, Docs or image to the current board.
 - Export ▸ **Save board to Google Drive**: saves the board file to a "PSD Whiteboard" folder.
   Saving again updates the same file. Opening it from Drive on another device and saving

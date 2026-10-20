@@ -1591,7 +1591,14 @@ function wire() {
   document.body.classList.toggle('drive-off', !drive.driveEnabled());
 
   $('#new').onclick = () => createProject();
-  $('#import').onclick = () => $('#importFile').click();
+  // The device file picker can't convert Google files, so point people to the Drive button.
+  const driveHint = () => {
+    if (drive.driveEnabled()) toast('For Google Slides, Docs or Sheets, use "Open from Google Drive" instead.');
+  };
+  $('#import').onclick = () => {
+    driveHint();
+    $('#importFile').click();
+  };
   $('#home-drive').onclick = () => pickFromDrive({ intoBoard: false });
   $('#importFile').onchange = (e) => {
     const f = e.target.files[0];
@@ -1661,7 +1668,10 @@ function wire() {
       closeMenus();
       const kind = b.dataset.insert;
       if (kind === 'image') $('#imageFile').click();
-      else if (kind === 'pdf') $('#pdfFile').click();
+      else if (kind === 'pdf') {
+        driveHint();
+        $('#pdfFile').click();
+      }
       else if (kind === 'video') $('#videoFile').click();
       else if (kind === 'drive') pickFromDrive({ intoBoard: true });
       else toggleInstrument(kind);

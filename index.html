@@ -22,8 +22,8 @@
   <header class="home-head">
     <h1><img src="icons/icon.svg" alt="" width="36" height="36">PSD Whiteboard</h1>
     <div class="row wrap">
-      <button id="import" class="btn"><span data-icon="open"></span>Open file</button>
-      <button id="home-drive" class="btn drive-only"><span data-icon="drive"></span>Google Drive</button>
+      <button id="home-drive" class="btn drive-only"><span data-icon="drive"></span>Open from Google Drive</button>
+      <button id="import" class="btn"><span data-icon="open"></span>Open PDF or file</button>
       <button id="new" class="btn primary"><span data-icon="plus"></span>New board</button>
     </div>
   </header>
@@ -153,10 +153,11 @@
 </div>
 
 <div id="insertmenu" class="menu" hidden>
-  <button class="item" data-insert="image"><span data-icon="image"></span>Image or photo</button>
-  <button class="item" data-insert="pdf"><span data-icon="pdf"></span>PDF (adds pages)</button>
-  <button class="item" data-insert="video"><span data-icon="video"></span>Video clip</button>
   <button class="item drive-only" data-insert="drive"><span data-icon="drive"></span>From Google Drive (Slides, Docs, Sheets, PDF…)</button>
+  <hr class="drive-only">
+  <button class="item" data-insert="image"><span data-icon="image"></span>Image or photo</button>
+  <button class="item" data-insert="pdf"><span data-icon="pdf"></span>PDF file (adds pages)</button>
+  <button class="item" data-insert="video"><span data-icon="video"></span>Video clip</button>
   <hr>
   <button class="item" data-insert="ruler"><span data-icon="ruler"></span>Ruler<span class="tick" data-icon="check"></span></button>
   <button class="item" data-insert="protractor"><span data-icon="protractor"></span>Protractor<span class="tick" data-icon="check"></span></button>

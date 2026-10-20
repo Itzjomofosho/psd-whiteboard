@@ -155,13 +155,30 @@ export async function pick() {
   const t = await getToken();
   if (!window.google?.picker) throw new Error('Google Picker is still loading. Try again in a moment.');
   const P = window.google.picker;
+  // Tabs laid out like Drive itself: browsable folders rather than one flat list.
+  const view = (label) => {
+    const v = new P.DocsView(P.ViewId.DOCS)
+      .setMimeTypes(PICKABLE.join(','))
+      .setMode(P.DocsViewMode.LIST)
+      .setSelectFolderEnabled(false);
+    v.setLabel?.(label);
+    return v;
+  };
+  const views = [
+    view('My Drive').setIncludeFolders(true).setParent('root'),
+    view('Shared with me').setIncludeFolders(true).setOwnedByMe(false),
+    view('Shared drives').setIncludeFolders(true).setEnableDrives(true),
+    view('Starred').setStarred(true),
+  ];
   return new Promise((resolve) => {
-    const view = new P.DocsView(P.ViewId.DOCS).setMimeTypes(PICKABLE.join(',')).setIncludeFolders(true);
-    new P.PickerBuilder()
+    const builder = new P.PickerBuilder()
       .setAppId(GOOGLE.appId)
       .setOAuthToken(t)
       .setDeveloperKey(GOOGLE.apiKey)
-      .addView(view)
+      .setTitle('Choose a file for your whiteboard');
+    if (P.Feature?.SUPPORT_DRIVES) builder.enableFeature(P.Feature.SUPPORT_DRIVES);
+    for (const v of views) builder.addView(v);
+    builder
       .setCallback((d) => {
         if (d.action === P.Action.PICKED) resolve(d.docs[0]);
         else if (d.action === P.Action.CANCEL) resolve(null);
