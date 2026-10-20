@@ -30,6 +30,7 @@ const PATHS = {
   front: '<rect x="9" y="9" width="11" height="11" rx="1.5" fill="currentColor" fill-opacity=".25"/><path d="M15 5V4H4v11h1"/>',
   close: '<path d="M6 6l12 12M18 6L6 18"/>',
   open: '<path d="M3 6h6l2 2h10v11H3z"/>',
+  zoom: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21M7.5 10.5h6M10.5 7.5v6"/>',
   triangle: '<path d="M12 4l9 16H3z"/>',
   camera: '<rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3"/>',
   present: '<rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M12 16v4M8 20h8"/><path d="M10 8l4 2-4 2z" fill="currentColor"/>',

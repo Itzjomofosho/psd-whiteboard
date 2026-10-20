@@ -11,8 +11,12 @@ and recordings are saved on the device, with optional Google Drive / Classroom i
 - Shapes (rectangle, ellipse, triangle, line, arrow) with no fill, light fill or solid fill,
   and solid or dashed outlines
 - Text, laser pointer (fades out, shows in recordings)
-- **Zoom and pan:** pinch with two fingers, use the − / % / + control at the bottom right,
-  Ctrl+scroll on a computer, or drag with one finger while using an Apple Pencil
+- **Infinite canvas, zoom and pan:** zoom out to 25% or in to 600% and move in any direction for
+  more space. Use the **Zoom tool** (magnifier in the toolbar: drag to move, pinch or scroll to zoom),
+  pinch with two fingers in any tool, Ctrl+scroll on a computer, or drag with one finger while using
+  an Apple Pencil. The control at the bottom right zooms in/out, returns to the page (the % button)
+  and fits everything on the page into view (⛶). Backgrounds repeat forever, and the original page
+  shows as a faint dashed outline. Recordings capture whatever is on screen.
 - **Ruler and protractor** (Insert menu): drag to move, use the round handle to rotate
   (snaps to 15°). Pen strokes started just above the ruler's top edge draw a straight line
   along it.
@@ -46,10 +50,10 @@ handwriting lines, dots, coordinate plane, music staff, dark, chalkboard.
     battery dies, the recording up to that point is recovered next time the app opens.
   - Recordings stay under **Recordings on this device** on the home screen until deleted.
 
-**Exporting:** current page as PNG, all pages as PDF, board project file (`.json`, includes
+**Exporting:** current page as PNG, all pages as PDF (each page includes anything drawn outside the original page area), board project file (`.json`, includes
 video clips) for backup or moving to another device, and recordings as video files.
 
-Keyboard (computer): V select, P pen, H highlighter, E eraser, S shapes, T text, L laser,
+Keyboard (computer): V select, Z zoom tool, P pen, H highlighter, E eraser, S shapes, T text, L laser,
 Ctrl+Z / Ctrl+Shift+Z undo/redo, Delete removes the selection, ←/→ or PageUp/PageDown change
 pages, + / − / 0 zoom, Esc ends presenting.
 

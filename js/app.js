@@ -3,7 +3,7 @@ import {
   W, H, uid, newPage, newProject, BACKGROUNDS, FONT, LINE_HEIGHT, LASER_MS,
   Renderer, renderToCanvas, ensureImages, setImageReadyHandler, setVideoProvider, setView,
   bounds, unionBounds, hitObject, hitTest, pointInPolygon, transformObj, measureText, drawObject, drawLaser,
-  isClosedShape,
+  isClosedShape, contentRect,
 } from './board.js';
 import * as store from './store.js';
 import { Recorder } from './recorder.js';
@@ -28,9 +28,11 @@ const SIZES = {
   shape: [3, 6, 12],
   text: [32, 48, 80],
 };
-const KEYS = { v: 'select', p: 'pen', h: 'highlighter', e: 'eraser', s: 'shape', t: 'text', l: 'laser' };
+const KEYS = { v: 'select', p: 'pen', h: 'highlighter', e: 'eraser', s: 'shape', t: 'text', l: 'laser', z: 'hand' };
 const HANDLE = 14; // resize handle radius, CSS px
 const MAX_ZOOM = 6;
+const MIN_ZOOM = 0.25;
+const EXTENT = 3; // how many page-widths/heights the canvas extends beyond the page
 const MAX_VIDEO_MB = 300;
 const FILE_FORMAT = 'psd-whiteboard';
 const OBJECT_TYPES = new Set(['stroke', 'shape', 'text', 'image', 'video']);
@@ -397,10 +399,13 @@ function goToPage(i) {
 
 // ---------- view (zoom and pan) ----------
 
+const clampZoom = (z) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z));
+
+// The canvas extends EXTENT pages beyond the original page in every direction.
 function setViewTo(z, x, y) {
-  z = Math.min(MAX_ZOOM, Math.max(1, z));
-  x = Math.min(Math.max(0, x), W - W / z);
-  y = Math.min(Math.max(0, y), H - H / z);
+  z = clampZoom(z);
+  x = Math.min(Math.max(-EXTENT * W, x), (1 + EXTENT) * W - W / z);
+  y = Math.min(Math.max(-EXTENT * H, y), (1 + EXTENT) * H - H / z);
   if (z === view.z && x === view.x && y === view.y) return;
   view = { z, x, y };
   dirtyCache = dirtyFrame = true;
@@ -411,13 +416,21 @@ function setViewTo(z, x, y) {
 // Zoom by `factor`, keeping canvas point (cx, cy) fixed.
 function zoomAt(factor, cx = W / 2, cy = H / 2) {
   const bx = view.x + cx / view.z, by = view.y + cy / view.z;
-  const z = Math.min(MAX_ZOOM, Math.max(1, view.z * factor));
+  const z = clampZoom(view.z * factor);
   setViewTo(z, bx - cx / z, by - cy / z);
 }
 
+// Shows the whole page plus anything drawn outside it.
+function fitContent() {
+  const r = contentRect(page());
+  setViewTo(W / r.w, r.x, r.y);
+}
+
+const isPageView = () => view.z === 1 && view.x === 0 && view.y === 0;
+
 function updateZoomUi() {
   $('#zoom-reset').textContent = `${Math.round(view.z * 100)}%`;
-  $('#zoom-out').disabled = view.z <= 1;
+  $('#zoom-out').disabled = view.z <= MIN_ZOOM;
   $('#zoom-in').disabled = view.z >= MAX_ZOOM;
 }
 
@@ -563,6 +576,14 @@ function drawOverlay() {
   octx.clearRect(0, 0, W, H);
   setView(octx, view);
   const u = 1 / k(); // board units per CSS px
+  if (!isPageView()) {
+    // Faint outline of the original page, for orientation (not recorded).
+    octx.setLineDash([10 * u, 8 * u]);
+    octx.strokeStyle = 'rgba(30,102,245,.35)';
+    octx.lineWidth = 1.5 * u;
+    octx.strokeRect(0, 0, W, H);
+    octx.setLineDash([]);
+  }
   octx.lineWidth = 2 * u;
   if (drag?.kind === 'erase' && drag.last) {
     octx.beginPath();
@@ -658,7 +679,7 @@ function updatePinch() {
   const d = Math.hypot(a[0] - b[0], a[1] - b[1]);
   const m = canvasPoint({ clientX: (a[0] + b[0]) / 2, clientY: (a[1] + b[1]) / 2 });
   const { v0, m0 } = pinch;
-  const z = Math.min(MAX_ZOOM, Math.max(1, (v0.z * d) / pinch.d0));
+  const z = clampZoom((v0.z * d) / pinch.d0);
   setViewTo(z, v0.x + m0[0] / v0.z - m[0] / z, v0.y + m0[1] / v0.z - m[1] / z);
 }
 
@@ -695,8 +716,9 @@ function onPointerDown(e) {
       : { ...base, kind: 'instrument', inst: inst.inst, dx: inst.inst.x - x, dy: inst.inst.y - y };
     return;
   }
-  // With a stylus in use, a finger pans instead of drawing (palm rejection).
-  if (penSeen && e.pointerType === 'touch' && state.tool !== 'select') {
+  // The Zoom tool pans with any pointer; with a stylus in use, a finger pans
+  // instead of drawing (palm rejection).
+  if (state.tool === 'hand' || (penSeen && e.pointerType === 'touch' && state.tool !== 'select')) {
     drag = { ...base, kind: 'pan', c0: c, v0: { ...view } };
     return;
   }
@@ -1702,6 +1724,7 @@ function wire() {
   $('#zoom-in').onclick = () => zoomAt(1.25);
   $('#zoom-out').onclick = () => zoomAt(0.8);
   $('#zoom-reset').onclick = () => setViewTo(1, 0, 0);
+  $('#zoom-fit').onclick = fitContent;
 
   $('#sel-edit').onclick = () => {
     const [o] = selectedObjs();
@@ -1740,7 +1763,7 @@ function wire() {
     const c = canvasPoint(e);
     if (e.ctrlKey || e.metaKey) {
       zoomAt(Math.exp(-e.deltaY * 0.01), c[0], c[1]);
-    } else if (view.z > 1) {
+    } else {
       const f = W / paper.getBoundingClientRect().width / view.z;
       setViewTo(view.z, view.x + e.deltaX * f, view.y + e.deltaY * f);
     }

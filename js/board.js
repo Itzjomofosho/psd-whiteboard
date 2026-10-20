@@ -77,88 +77,67 @@ export async function ensureImages(pages) {
 
 // ---------- drawing ----------
 
-function drawBackground(ctx, bg) {
+export const PAGE_RECT = Object.freeze({ x: 0, y: 0, w: W, h: H });
+
+// Values v = from + k*step (any integer k) that fall within [lo, hi].
+function every(from, step, lo, hi) {
+  const out = [];
+  for (let v = from + Math.ceil((lo - from) / step) * step; v <= hi; v += step) out.push(v);
+  return out;
+}
+
+// Draws the background over rect r (board units). Patterns are anchored to
+// the original page and repeat forever, so the canvas can extend in any direction.
+function drawBackground(ctx, bg, r = PAGE_RECT) {
+  const x0 = r.x, x1 = r.x + r.w, y0 = r.y, y1 = r.y + r.h;
   ctx.fillStyle = bgFill(bg);
-  ctx.fillRect(0, 0, W, H);
+  ctx.fillRect(x0, y0, r.w, r.h);
   ctx.save();
-  const hlines = (ys, color, width = 2, dash = []) => {
+  const lines = (xs, ys, color, width = 2, dash = []) => {
     ctx.strokeStyle = color;
     ctx.lineWidth = width;
     ctx.setLineDash(dash);
     ctx.beginPath();
-    for (const y of ys) { ctx.moveTo(0, y); ctx.lineTo(W, y); }
+    for (const x of xs) { ctx.moveTo(x, y0); ctx.lineTo(x, y1); }
+    for (const y of ys) { ctx.moveTo(x0, y); ctx.lineTo(x1, y); }
     ctx.stroke();
     ctx.setLineDash([]);
   };
-  const range = (from, to, step) => Array.from({ length: Math.max(0, Math.floor((to - from) / step) + 1) }, (_, i) => from + i * step);
 
   if (bg === 'grid') {
-    ctx.strokeStyle = '#dfe5ec';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    for (const x of range(60, W - 1, 60)) { ctx.moveTo(x, 0); ctx.lineTo(x, H); }
-    for (const y of range(60, H - 1, 60)) { ctx.moveTo(0, y); ctx.lineTo(W, y); }
-    ctx.stroke();
+    lines(every(0, 60, x0, x1), every(0, 60, y0, y1), '#dfe5ec');
   } else if (bg === 'lines') {
-    hlines(range(120, H - 1, 60), '#cfe0f5');
-    ctx.strokeStyle = '#f2b8b8';
-    ctx.beginPath();
-    ctx.moveTo(160, 0);
-    ctx.lineTo(160, H);
-    ctx.stroke();
+    lines([], every(0, 60, y0, y1), '#cfe0f5');
+    lines(x0 <= 160 && 160 <= x1 ? [160] : [], [], '#f2b8b8');
   } else if (bg === 'handwriting') {
     // Primary ruling: solid top line, dashed midline, solid red baseline.
-    const rows = range(110, H - 100, 170);
-    hlines(rows, '#8fb0dc', 2);
-    hlines(rows.map((y) => y + 45), '#8fb0dc', 2, [14, 12]);
-    hlines(rows.map((y) => y + 90), '#e48b8b', 3);
+    const rows = every(110, 170, y0 - 90, y1);
+    lines([], rows, '#8fb0dc', 2);
+    lines([], rows.map((y) => y + 45), '#8fb0dc', 2, [14, 12]);
+    lines([], rows.map((y) => y + 90), '#e48b8b', 3);
   } else if (bg === 'dots') {
     ctx.fillStyle = '#c4ccd6';
-    for (const x of range(60, W - 1, 60)) for (const y of range(60, H - 1, 60)) ctx.fillRect(x - 2.5, y - 2.5, 5, 5);
+    const ys = every(0, 60, y0, y1);
+    for (const x of every(0, 60, x0, x1)) for (const y of ys) ctx.fillRect(x - 2.5, y - 2.5, 5, 5);
   } else if (bg === 'coord') {
     const u = 40, cx = W / 2, cy = H / 2;
-    ctx.strokeStyle = '#e3e8ef';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    for (let x = cx % u; x < W; x += u) { ctx.moveTo(x, 0); ctx.lineTo(x, H); }
-    for (let y = cy % u; y < H; y += u) { ctx.moveTo(0, y); ctx.lineTo(W, y); }
-    ctx.stroke();
-    ctx.strokeStyle = '#475467';
+    lines(every(cx, u, x0, x1), every(cy, u, y0, y1), '#e3e8ef', 1.5);
+    lines(x0 <= cx && cx <= x1 ? [cx] : [], y0 <= cy && cy <= y1 ? [cy] : [], '#475467', 3);
     ctx.fillStyle = '#475467';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(10, cy); ctx.lineTo(W - 10, cy);
-    ctx.moveTo(cx, 10); ctx.lineTo(cx, H - 10);
-    ctx.stroke();
-    const head = (x, y, dx, dy) => {
-      ctx.beginPath();
-      ctx.moveTo(x, y);
-      ctx.lineTo(x - dx * 18 - dy * 9, y - dy * 18 - dx * 9);
-      ctx.lineTo(x - dx * 18 + dy * 9, y - dy * 18 + dx * 9);
-      ctx.fill();
-    };
-    head(W - 6, cy, 1, 0); head(6, cy, -1, 0); head(cx, 6, 0, -1); head(cx, H - 6, 0, 1);
     ctx.font = `18px ${FONT}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
-    for (let i = -22; i <= 22; i += 2) if (i) ctx.fillText(String(i), cx + i * u, cy + 8);
+    for (const x of every(cx, 2 * u, x0, x1)) if (x !== cx) ctx.fillText(String((x - cx) / u), x, cy + 8);
     ctx.textAlign = 'right';
     ctx.textBaseline = 'middle';
-    for (let i = -12; i <= 12; i += 2) if (i) ctx.fillText(String(-i), cx - 8, cy + i * u);
+    for (const y of every(cy, 2 * u, y0, y1)) if (y !== cy) ctx.fillText(String((cy - y) / u), cx - 8, y);
     ctx.font = `italic 24px ${FONT}`;
     ctx.fillText('x', W - 16, cy - 22);
     ctx.textAlign = 'left';
     ctx.fillText('y', cx + 14, 22);
   } else if (bg === 'staff') {
-    ctx.strokeStyle = '#7c8797';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    for (const top of range(140, H - 120, 190)) {
-      for (let k = 0; k < 5; k++) { ctx.moveTo(80, top + k * 20); ctx.lineTo(W - 80, top + k * 20); }
-      ctx.moveTo(80, top); ctx.lineTo(80, top + 80);
-      ctx.moveTo(W - 80, top); ctx.lineTo(W - 80, top + 80);
-    }
-    ctx.stroke();
+    const tops = every(140, 190, y0 - 80, y1);
+    lines([], tops.flatMap((t) => [0, 20, 40, 60, 80].map((k) => t + k)), '#7c8797');
   }
   ctx.restore();
 }
@@ -319,8 +298,8 @@ export function drawObject(ctx, o) {
   else if (o.type === 'video') drawVideo(ctx, o);
 }
 
-export function drawPage(ctx, bg, objects) {
-  drawBackground(ctx, bg);
+export function drawPage(ctx, bg, objects, rect = PAGE_RECT) {
+  drawBackground(ctx, bg, rect);
   for (const o of objects) drawObject(ctx, o);
 }
 
@@ -374,7 +353,7 @@ export class Renderer {
     this.bg = bg;
     this.cacheView = { ...view };
     setView(this.cctx, view);
-    drawPage(this.cctx, bg, objects);
+    drawPage(this.cctx, bg, objects, { x: view.x, y: view.y, w: W / view.z, h: H / view.z });
   }
 
   // drawWorld(ctx) draws in board coordinates; drawScreen(ctx) in canvas pixels.
@@ -395,13 +374,39 @@ export class Renderer {
   }
 }
 
+// The area to export for a page: the original page plus anything drawn
+// outside it, widened to 16:9.
+export function contentRect(page, pad = 40) {
+  let x0 = 0, y0 = 0, x1 = W, y1 = H;
+  if (page.objects.length) {
+    const b = unionBounds(page.objects);
+    x0 = Math.min(x0, b.x - pad);
+    y0 = Math.min(y0, b.y - pad);
+    x1 = Math.max(x1, b.x + b.w + pad);
+    y1 = Math.max(y1, b.y + b.h + pad);
+  }
+  let w = x1 - x0, h = y1 - y0;
+  if (w / h > W / H) {
+    const nh = (w * H) / W;
+    y0 -= (nh - h) / 2;
+    h = nh;
+  } else {
+    const nw = (h * W) / H;
+    x0 -= (nw - w) / 2;
+    w = nw;
+  }
+  return { x: x0, y: y0, w, h };
+}
+
 export function renderToCanvas(page, width) {
   const c = document.createElement('canvas');
   c.width = width;
   c.height = Math.round((width * H) / W);
+  const r = contentRect(page);
+  const s = width / r.w;
   const ctx = c.getContext('2d');
-  ctx.scale(width / W, width / W);
-  drawPage(ctx, page.bg, page.objects);
+  ctx.setTransform(s, 0, 0, s, -r.x * s, -r.y * s);
+  drawPage(ctx, page.bg, page.objects, r);
   return c;
 }
 
